@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
 use App\Models\User;
 use Dotenv\Parser\Parser;
 use Illuminate\Http\Request;
@@ -96,11 +97,21 @@ class AuthController extends Controller
             $request->limit = $request->limit ?: 10;
             $user = new User();
 
-            $data = $user->findForUsers($request->searchType, $request->searchValue)->paginate($request->limit, '*', null, $request->page);
-
-            foreach ($data->items() as $users) {
-                echo $users->name;
-            }
+            return $user->findForUsers($request->searchType, $request->searchValue)->paginate($request->limit, '*', null, $request->page);
         }
+    }
+
+    public function getOrderList()
+    {
+        $order = new Order();
+
+        return $order->findForOrder('userId', Auth::user()['id']);
+    }
+
+    public function getFindOrderList($id)
+    {
+        $order = new Order();
+
+        return $order->findForOrder('userId', $id);
     }
 }

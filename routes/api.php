@@ -28,12 +28,10 @@ Route::prefix('/auth')->group(function () {
         Route::get('user', [AuthController::class, 'user']);
         Route::get('user/{id}', [AuthController::class, 'getUser']);
         Route::get('findUser', [AuthController::class, 'getFindUser']);
-        Route::get('logout', [AuthController::class, 'logout']);
-    });
-});
 
-Route::prefix('/order')->group(function () {
-    Route::middleware('auth:api')->group(function () {
-        Route::get('list/{id}', [OrderController::class, 'getList']);
+        Route::get('order/list', [AuthController::class, 'getOrderList']);
+        Route::get('order/list/{id}', [AuthController::class, 'getFindOrderList']);
+
+        Route::get('logout', [AuthController::class, 'logout']);
     });
 });

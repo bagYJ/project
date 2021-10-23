@@ -18,7 +18,7 @@ class CreateOrderTable extends Migration
             $table->string('orderNo', 20)->comment('주문번호');
             $table->integer('userId')->comment('회원번호');
             $table->string('orderGoodsNm', 100)->comment('제품명');
-            $table->dateTime('payed_at')->comment('결제일시');
+            $table->dateTime('payed_at')->comment('결제일시')->nullable();
             $table->timestamps();
         });
     }
