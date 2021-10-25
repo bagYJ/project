@@ -1,17 +1,32 @@
 # 백패커/아이디어스 개발과제 API 문서
 
-This is a bare-bones example of a Sinatra application providing a REST
-API to a DataMapper-backed model.
+## 회원 테이블
 
-The entire application is contained within the `app.rb` file.
+    CREATE TABLE `users` (
+      `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+      `name` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '이름',
+      `nickname` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '별명',
+      `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '비밀번호',
+      `phone` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '전화번호',
+      `email` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '이메일',
+      `sex` enum('m','w') COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '성별',
+      `created_at` timestamp NULL DEFAULT NULL,
+      `updated_at` timestamp NULL DEFAULT NULL,
+      PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 
-`config.ru` is a minimal Rack configuration for unicorn.
+## 주문 테이블
 
-`run-tests.sh` runs a simplistic test and generates the API
-documentation below.
-
-It uses `run-curl-tests.rb` which runs each command defined in
-`commands.yml`.
+    CREATE TABLE `order` (
+      `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+      `orderNo` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '주문번호',
+      `userId` int NOT NULL COMMENT '회원번호',
+      `orderGoodsNm` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '제품명',
+      `payed_at` datetime DEFAULT NULL COMMENT '결제일시',
+      `created_at` timestamp NULL DEFAULT NULL,
+      `updated_at` timestamp NULL DEFAULT NULL,
+      PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 
 # REST API
 
@@ -21,6 +36,8 @@ It uses `run-curl-tests.rb` which runs each command defined in
 
 `POST /auth/regist`
 
+    name (required) 이름
+    
     curl -i -H 'Accept: application/json' -X POST -d 'name=Name&nickname=NickName&password=Password&phone=0100000000&email=email@email.com' http://localhost/auth/regist
 
 ### Response
@@ -113,11 +130,11 @@ It uses `run-curl-tests.rb` which runs each command defined in
 
 ## Get list of Things again
 
-### Request
+### 내 주문정보 조회
 
-`GET /thing/`
+`GET /auth/order/list`
 
-    curl -i -H 'Accept: application/json' http://localhost:7000/thing/
+    curl -i -H 'Accept: application/json' -H 'Authorization: Bearer access-token' http://localhost/auth/order/list
 
 ### Response
 
@@ -128,15 +145,15 @@ It uses `run-curl-tests.rb` which runs each command defined in
     Content-Type: application/json
     Content-Length: 74
 
-    [{"id":1,"name":"Foo","status":"new"},{"id":2,"name":"Bar","status":null}]
+    [{"id":1,"orderNo":"11111","userId":1,"orderGoodsNm":"상품1","payed_at":null,"created_at":null,"updated_at":null},{"id":2,"orderNo":"11112","userId":1,"orderGoodsNm":"상품2","payed_at":null,"created_at":null,"updated_at":null}]
 
-## Change a Thing's state
+## 다른 주문정보 조회
 
 ### Request
 
-`PUT /thing/:id/status/changed`
+`GET /auth/order/list/{id}`
 
-    curl -i -H 'Accept: application/json' -X PUT http://localhost:7000/thing/1/status/changed
+    curl -i -H 'Accept: application/json' -H 'Authorization: Bearer access-token' http://localhost/auth/order/list/1
 
 ### Response
 
@@ -147,15 +164,15 @@ It uses `run-curl-tests.rb` which runs each command defined in
     Content-Type: application/json
     Content-Length: 40
 
-    {"id":1,"name":"Foo","status":"changed"}
+    [{"id":1,"orderNo":"11111","userId":1,"orderGoodsNm":"상품1","payed_at":null,"created_at":null,"updated_at":null},{"id":2,"orderNo":"11112","userId":1,"orderGoodsNm":"상품2","payed_at":null,"created_at":null,"updated_at":null}]
 
-## Get changed Thing
+## 로그아웃
 
 ### Request
 
-`GET /thing/id`
+`GET /auth/logout`
 
-    curl -i -H 'Accept: application/json' http://localhost:7000/thing/1
+    curl -i -H 'Accept: application/json' -H 'Authorization: Bearer access-token' http://localhost/auth/logout
 
 ### Response
 
@@ -166,170 +183,5 @@ It uses `run-curl-tests.rb` which runs each command defined in
     Content-Type: application/json
     Content-Length: 40
 
-    {"id":1,"name":"Foo","status":"changed"}
-
-## Change a Thing
-
-### Request
-
-`PUT /thing/:id`
-
-    curl -i -H 'Accept: application/json' -X PUT -d 'name=Foo&status=changed2' http://localhost:7000/thing/1
-
-### Response
-
-    HTTP/1.1 200 OK
-    Date: Thu, 24 Feb 2011 12:36:31 GMT
-    Status: 200 OK
-    Connection: close
-    Content-Type: application/json
-    Content-Length: 41
-
-    {"id":1,"name":"Foo","status":"changed2"}
-
-## Attempt to change a Thing using partial params
-
-### Request
-
-`PUT /thing/:id`
-
-    curl -i -H 'Accept: application/json' -X PUT -d 'status=changed3' http://localhost:7000/thing/1
-
-### Response
-
-    HTTP/1.1 200 OK
-    Date: Thu, 24 Feb 2011 12:36:32 GMT
-    Status: 200 OK
-    Connection: close
-    Content-Type: application/json
-    Content-Length: 41
-
-    {"id":1,"name":"Foo","status":"changed3"}
-
-## Attempt to change a Thing using invalid params
-
-### Request
-
-`PUT /thing/:id`
-
-    curl -i -H 'Accept: application/json' -X PUT -d 'id=99&status=changed4' http://localhost:7000/thing/1
-
-### Response
-
-    HTTP/1.1 200 OK
-    Date: Thu, 24 Feb 2011 12:36:32 GMT
-    Status: 200 OK
-    Connection: close
-    Content-Type: application/json
-    Content-Length: 41
-
-    {"id":1,"name":"Foo","status":"changed4"}
-
-## Change a Thing using the _method hack
-
-### Request
-
-`POST /thing/:id?_method=POST`
-
-    curl -i -H 'Accept: application/json' -X POST -d 'name=Baz&_method=PUT' http://localhost:7000/thing/1
-
-### Response
-
-    HTTP/1.1 200 OK
-    Date: Thu, 24 Feb 2011 12:36:32 GMT
-    Status: 200 OK
-    Connection: close
-    Content-Type: application/json
-    Content-Length: 41
-
-    {"id":1,"name":"Baz","status":"changed4"}
-
-## Change a Thing using the _method hack in the url
-
-### Request
-
-`POST /thing/:id?_method=POST`
-
-    curl -i -H 'Accept: application/json' -X POST -d 'name=Qux' http://localhost:7000/thing/1?_method=PUT
-
-### Response
-
-    HTTP/1.1 404 Not Found
-    Date: Thu, 24 Feb 2011 12:36:32 GMT
-    Status: 404 Not Found
-    Connection: close
-    Content-Type: text/html;charset=utf-8
-    Content-Length: 35
-
-    {"status":404,"reason":"Not found"}
-
-## Delete a Thing
-
-### Request
-
-`DELETE /thing/id`
-
-    curl -i -H 'Accept: application/json' -X DELETE http://localhost:7000/thing/1/
-
-### Response
-
-    HTTP/1.1 204 No Content
-    Date: Thu, 24 Feb 2011 12:36:32 GMT
-    Status: 204 No Content
-    Connection: close
-
-
-## Try to delete same Thing again
-
-### Request
-
-`DELETE /thing/id`
-
-    curl -i -H 'Accept: application/json' -X DELETE http://localhost:7000/thing/1/
-
-### Response
-
-    HTTP/1.1 404 Not Found
-    Date: Thu, 24 Feb 2011 12:36:32 GMT
-    Status: 404 Not Found
-    Connection: close
-    Content-Type: application/json
-    Content-Length: 35
-
-    {"status":404,"reason":"Not found"}
-
-## Get deleted Thing
-
-### Request
-
-`GET /thing/1`
-
-    curl -i -H 'Accept: application/json' http://localhost:7000/thing/1
-
-### Response
-
-    HTTP/1.1 404 Not Found
-    Date: Thu, 24 Feb 2011 12:36:33 GMT
-    Status: 404 Not Found
-    Connection: close
-    Content-Type: application/json
-    Content-Length: 35
-
-    {"status":404,"reason":"Not found"}
-
-## Delete a Thing using the _method hack
-
-### Request
-
-`DELETE /thing/id`
-
-    curl -i -H 'Accept: application/json' -X POST -d'_method=DELETE' http://localhost:7000/thing/2/
-
-### Response
-
-    HTTP/1.1 204 No Content
-    Date: Thu, 24 Feb 2011 12:36:33 GMT
-    Status: 204 No Content
-    Connection: close
-
+    logout success
 
