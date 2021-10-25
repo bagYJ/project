@@ -37,8 +37,14 @@
 `POST /auth/regist`
 
     name (required) 이름
+    nickname (required) 별명
+    password (required) 비밀번호
+    phone (required) 핸드폰번호
+    email (required) 이메일
+    sex 성별(m,w)
     
-    curl -i -H 'Accept: application/json' -X POST -d 'name=Name&nickname=NickName&password=Password&phone=0100000000&email=email@email.com' http://localhost/auth/regist
+    
+    curl -i -H 'Accept: application/json' -X POST -d 'name=Name&nickname=NickName&password=Password&phone=0100000000&email=email@email.com&sex=m' http://localhost/auth/regist
 
 ### Response
 
@@ -57,6 +63,9 @@
 
 `POST /auth/login`
 
+    email (required) 이메일
+    password (required) 비밀번호
+    
     curl -i -H 'Accept: application/json' -X POST -d 'email=email@email.com&password=Password' http://localhost/auth/login
 
 ### Response
@@ -96,6 +105,8 @@
 
 `GET /auth/user/{id}`
 
+    id 회원번호
+
     curl -i -H 'Accept: application/json' -H 'Authorization: Bearer access-token' http://localhost/auth/user/1
 
 ### Response
@@ -114,6 +125,9 @@
 ### Request
 
 `GET /auth/findUser`
+
+    searchType 검색조건
+    searchValue 검색값
 
     curl -i -H 'Accept: application/json' -H 'Authorization: Bearer access-token' -d 'searchType=email&searchValue=email@email.com' http://localhost/auth/findUser
 
@@ -152,6 +166,8 @@
 ### Request
 
 `GET /auth/order/list/{id}`
+
+    id 회원번호
 
     curl -i -H 'Accept: application/json' -H 'Authorization: Bearer access-token' http://localhost/auth/order/list/1
 
